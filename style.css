@@ -89,3 +89,33 @@ img.profile {
 .entry .title {
   font-weight: 700;
 }
+
+.patent-entry {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.patent-video {
+  flex-shrink: 0;
+  width: 250px;
+}
+
+.patent-video img {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.patent-text {
+  flex: 1;
+}
+
+@media (max-width: 600px) {
+  .patent-entry {
+    flex-direction: column;
+  }
+  .patent-video {
+    width: 100%;
+    max-width: 300px;
+  }
+}
