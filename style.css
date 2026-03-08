@@ -11,7 +11,7 @@ body {
 }
 
 #container {
-  max-width: 900px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -90,31 +90,31 @@ img.profile {
   font-weight: 700;
 }
 
-.patent-entry {
+.entry-with-media {
   display: flex;
   gap: 20px;
   align-items: flex-start;
 }
 
-.patent-video {
+.entry-media {
   flex-shrink: 0;
   width: 250px;
 }
 
-.patent-video img {
+.entry-media img {
   width: 100%;
   border-radius: 8px;
 }
 
-.patent-text {
+.entry-content {
   flex: 1;
 }
 
 @media (max-width: 600px) {
-  .patent-entry {
+  .entry-with-media {
     flex-direction: column;
   }
-  .patent-video {
+  .entry-media {
     width: 100%;
     max-width: 300px;
   }
