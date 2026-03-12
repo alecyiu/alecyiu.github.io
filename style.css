@@ -78,6 +78,13 @@ img.profile {
   margin: 0 4px;
 }
 
+.email-line {
+  text-align: center;
+  font-size: 13px;
+  color: #666;
+  margin: 5px 0 0;
+}
+
 .section {
   margin-bottom: 10px;
 }
