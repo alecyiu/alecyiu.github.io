@@ -179,7 +179,7 @@ img.profile {
 /* ---- Blog Page ---- */
 
 .blog-video {
-  width: 90vw;
+  width: 80vw;
   height: 450px;
   object-fit: cover;
   margin: 16px 0;
@@ -187,6 +187,17 @@ img.profile {
   transform: translateX(-50%);
   border-radius: 8px;
   display: block;
+}
+
+.blog-code-block {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  border-radius: 8px;
+  padding: 20px 24px;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre;
 }
 
 .blog-nav {
