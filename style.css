@@ -178,6 +178,13 @@ img.profile {
 
 /* ---- Blog Page ---- */
 
+.blog-video {
+  width: 100%;
+  border-radius: 8px;
+  margin: 16px 0;
+  display: block;
+}
+
 .blog-nav {
   margin-bottom: 10px;
 }
