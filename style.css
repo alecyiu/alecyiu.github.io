@@ -179,9 +179,13 @@ img.profile {
 /* ---- Blog Page ---- */
 
 .blog-video {
-  width: 100%;
-  border-radius: 8px;
+  width: 90vw;
+  height: 450px;
+  object-fit: cover;
   margin: 16px 0;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  border-radius: 8px;
   display: block;
 }
 
