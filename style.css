@@ -186,7 +186,7 @@ img.profile {
 .blog-video,
 .blog-section video {
   display: block;
-  width: 80vw;
+  width: 70vw;
   height: auto;
   margin: 24px 0;
   position: relative;
@@ -305,11 +305,11 @@ img.profile {
 }
 
 .blog-video-v1 {
-  width: 72vw;
+  width: 63vw;
 }
 
 .blog-video-v2 {
-  width: 68vw;
+  width: 60vw;
 }
 
 .blog-video-hero {
