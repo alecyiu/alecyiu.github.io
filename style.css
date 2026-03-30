@@ -276,7 +276,7 @@ img.profile {
   left: 50%;
   transform: translateX(-50%);
   margin: 24px 0;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .blog-figure-pair .blog-figure {
