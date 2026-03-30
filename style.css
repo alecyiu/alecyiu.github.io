@@ -299,6 +299,13 @@ img.profile {
   color: #fff;
 }
 
+.blog-video-hero {
+  width: 60%;
+  left: auto;
+  transform: none;
+  margin: 24px auto;
+}
+
 .blog-btn-primary {
   background: #1772d0;
   color: #fff;
