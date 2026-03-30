@@ -138,9 +138,7 @@ img.profile {
 }
 
 .highlight-card:hover {
-  border-color: #1772d0;
-  box-shadow: 0 4px 12px rgba(23, 114, 208, 0.12);
-  color: inherit;
+  border-color: #e0e0e0;
 }
 
 .highlight-thumb {
@@ -163,11 +161,7 @@ img.profile {
 .highlight-title {
   font-weight: 700;
   font-size: 15px;
-  color: #1772d0;
-}
-
-.highlight-card:hover .highlight-title {
-  color: #f09228;
+  color: #333;
 }
 
 .highlight-desc {
