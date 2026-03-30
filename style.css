@@ -299,6 +299,16 @@ img.profile {
   color: #fff;
 }
 
+.blog-btn-primary {
+  background: #1772d0;
+  color: #fff;
+}
+
+.blog-btn-primary:hover {
+  background: #fff;
+  color: #1772d0;
+}
+
 .blog-author {
   text-align: center;
   font-size: 15px;
