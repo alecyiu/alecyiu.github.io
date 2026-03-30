@@ -4,18 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Detecting Drift in a Doom World Model | Alec Yiu</title>
-  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
-  <link rel="stylesheet" href="../style.css">
+  <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+  <link rel="stylesheet" href="../../style.css">
 </head>
 <body>
   <div id="container">
 
     <div class="blog-nav">
-      <a href="../index.html">&larr; Back to Home</a>
+      <a href="../../index.html">&larr; Back to Home</a>
     </div>
 
     <h1 class="blog-title">Detecting Drift in a Doom World Model</h1>
-    <p class="blog-author"><a href="../index.html">Alec Yiu</a></p>
+    <p class="blog-author"><a href="../../index.html">Alec Yiu</a></p>
 
     <div class="blog-links">
       <a href="#" class="blog-btn">Paper</a>
@@ -56,7 +56,7 @@
 
       <h3>Video 1: Varying the input latent (latent drift detection)</h3>
       <video class="blog-video" autoplay loop muted playsinline>
-        <source src="../resources/drift-detection/VaryLatent.mp4" type="video/mp4">
+        <source src="resources/VaryLatent.mp4" type="video/mp4">
       </video>
       <p>
         Fix the position to the ground truth. Walk through a segment of consecutive frames &mdash; starting at the GT frame, moving forward to the end, wrapping to the start, and returning to GT. The OOD score stays low near the GT frame (where the latent actually matches the position) and rises as the latent drifts further away in the episode. This is the primary use case: detecting when the world model's output no longer matches where the player is.
@@ -64,7 +64,7 @@
 
       <h3>Video 2: Varying the position (position drift detection)</h3>
       <video class="blog-video" autoplay loop muted playsinline>
-        <source src="../resources/drift-detection/VaryPos.mp4" type="video/mp4">
+        <source src="resources/VaryPos.mp4" type="video/mp4">
       </video>
       <p>
         Fix the latent to the ground truth frame. Move the position in a spiral outward from GT, then back, then sweep yaw &plusmn;90&deg;. The OOD score tracks the displacement &mdash; it rises smoothly as position diverges and returns to baseline when the position comes back. The yaw sweep shows the model is also sensitive to orientation, not just XY.
@@ -147,7 +147,7 @@ Latent                               Position (x, y, yaw)
     <div class="blog-section">
       <h2>Noise Invariance</h2>
       <video class="blog-video" autoplay loop muted playsinline>
-        <source src="../resources/drift-detection/noisesweep.mp4" type="video/mp4">
+        <source src="resources/noisesweep.mp4" type="video/mp4">
       </video>
       <p>
         The model learns the semantic content of a frame &mdash; which room, which wall, which direction &mdash; not the rendering quality. The contrastive objective forces the encoder to extract position-relevant structure and discard everything else. The model doesn't care that the image looks bad. It cares that the image looks like <em>the wrong place</em>.
