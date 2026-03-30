@@ -255,6 +255,18 @@ img.profile {
   font-style: italic;
 }
 
+.blog-figure-title {
+  font-size: 20px;
+  font-weight: 700;
+  font-style: normal;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.blog-figure-sm img {
+  max-width: 60%;
+}
+
 .blog-btn {
   display: inline-block;
   padding: 6px 18px;
