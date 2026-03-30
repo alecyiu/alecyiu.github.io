@@ -154,8 +154,9 @@ img.profile {
 }
 
 .highlight-thumb video {
-  width: 100%;
-  height: 100%;
+  display: block;
+  width: 140px;
+  height: 90px;
   object-fit: cover;
   border-radius: 6px;
 }
