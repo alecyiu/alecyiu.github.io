@@ -11,7 +11,7 @@
   <div id="container">
 
     <div class="blog-nav">
-      <a href="../../index.html">&larr; Back to Home</a>
+      <a href="../../index.html">Home</a>
     </div>
 
     <h1 class="blog-title">World Model Drift Detection in Multiplayer Environments:<br>A CLIP-Based Approach</h1>
@@ -28,7 +28,7 @@
     <video class="blog-video blog-video-hero" autoplay loop muted playsinline>
       <source src="resources/driftvid.mp4" type="video/mp4">
     </video>
-    <p class="blog-hero-caption">Look at the wall hard enough, you may drift!</p>
+    <p class="blog-hero-caption">Look at the wall HARDER, you may drift!</p>
 
     <!-- ============================================================ -->
     <!-- SECTION: Intro -->
@@ -36,16 +36,13 @@
     <div class="blog-section">
       <h2>Intro</h2>
       <p>
-        World models are everywhere now &mdash; game simulation (GameNGen, Oasis), autonomous driving (GAIA-1, Vista), and robotics (UniSim, Genie, DVA). They all share the same failure mode: <strong>drift</strong>. Autoregressive world models condition each generated frame on a finite context window of previous frames. At inference, every frame in that window is itself generated &mdash; prediction errors compound across steps, and the context gradually fills with the model's own mistakes. Once the context window rolls past the last ground-truth frame, there is no anchor left. The distribution of latent states shifts, and generated output diverges from the true environment state. This is not a matter of model capacity or training data &mdash; it is a structural consequence of autoregressive generation over long horizons, analogous to the accumulation of integration error in dynamical systems.
+        World models drift, from game simulation (GameNGen, Oasis), autonomous driving (GAIA-1, Vista), robotics (UniSim, Genie, DVA), they generate long enough and prediction errors compound until the output no longer matches reality. The usual response is to extend the context window or compress memory more efficiently. This post takes a different approach: instead of preventing drift, <strong>detect it</strong>. And what you do after is another question. Steer the next frame? Reset? Integrate it inside the loss function...
       </p>
       <p>
-        In practice this means hallucinated roads, phantom walls, workspaces that don't exist. The longer the generation horizon, the worse it gets.
+        The testbed is a multiplayer Doom world model (<strong>MultiGen</strong> [1]) with shared state memory for multiple players &amp; one consistent world. Drift here is especially destructive because one player's divergence corrupts the shared state for everyone.
       </p>
       <p>
-        This post covers a contrastive drift detector that catches it. The underlying world model is a multiplayer Doom deathmatch simulator with shared state memory &mdash; multiple players occupy the same environment, and the world model must maintain a single consistent state across all of them. Drift in this setting is especially destructive because one player's divergence corrupts the shared state for everyone.
-      </p>
-      <p>
-        The idea is CLIP applied to world models &mdash; instead of matching images to text, match VAE latents to map coordinates. Low cosine similarity means the frame doesn't belong at that position. The model is small, runs thousands of frames per second, and generalizes to any world model conditioned on position or pose.
+        The detector borrows from CLIP [2]: match image latents to map coordinates via contrastive learning. Low cosine similarity means the frame doesn't belong at that player's view. Small model, thousands of frames per second at inference, idea applicable to any world model conditioned on position or pose.
       </p>
     </div>
 
@@ -57,28 +54,23 @@
     <div class="blog-section">
       <h2>Results</h2>
       <p>
-        Three videos demonstrate the detector's behavior on held-out test data. Each video isolates one variable to show what the model is actually sensitive to.
+        To demonstrate the detector's behaviour on held-out test data, each video isolates one variable to show what the model is actually sensitive to.
       </p>
 
-      <h3>Video 1: Varying the input latent (latent drift detection)</h3>
+      <h3>Detecting image latent drift (Varying the input latent)</h3>
       <video class="blog-video blog-video-v1" autoplay loop muted playsinline>
         <source src="resources/VaryLatent.mp4" type="video/mp4">
       </video>
       <p>
-        Fix the position to the ground truth. Walk through a segment of consecutive frames &mdash; starting at the GT frame, moving forward to the end, wrapping to the start, and returning to GT. The OOD score stays low near the GT frame (where the latent actually matches the position) and rises as the latent drifts further away in the episode. This is the primary use case: detecting when the world model's output no longer matches where the player is.
+        Fix the position to the ground truth. Walk through a segment of frames, from the GT frame, moving around, and returning to GT. The OOD score stays low near the GT frame (where the latent actually matches the position) and rises as the latent drifts further away in the episode. This is the primary use case: detecting when the world model's output no longer matches where the player is.
       </p>
 
-      <h3>Video 2: Varying the position (position drift detection)</h3>
+      <h3>Detecting position drift (Varying the position)</h3>
       <video class="blog-video blog-video-v2" autoplay loop muted playsinline>
         <source src="resources/VaryPos.mp4" type="video/mp4">
       </video>
       <p>
-        Fix the latent to the ground truth frame. Move the position in a spiral outward from GT, then back, then sweep yaw &plusmn;90&deg;. The OOD score tracks the displacement &mdash; it rises smoothly as position diverges and returns to baseline when the position comes back. The yaw sweep shows the model is also sensitive to orientation, not just XY.
-      </p>
-
-      <h3>Training</h3>
-      <p>
-        Trained with DDP across multiple GPUs with early stopping. The learned temperature roughly doubles over training &mdash; sharpening the softmax distribution as the embeddings become more discriminative.
+        Fix the image latent to the ground truth frame. Move the position in a spiral outward from GT, then sweep yaw &plusmn;90&deg;. The OOD score correlates with the displacement, rising as position diverges and returns to baseline when the position comes back. The yaw sweep shows the model is also sensitive to orientation, not just XY.
       </p>
     </div>
 
@@ -90,7 +82,7 @@
     <div class="blog-section">
       <h2>Architecture</h2>
       <p>
-        CLIP-style dual encoder. Two independent encoders project into the same embedding space &mdash; one from the VAE latent, one from the map position &mdash; and cosine similarity between them is the matching score.
+        CLIP [2]-style dual encoder. Two independent encoders project into the same embedding space. The cosine similarity between them is the matching score after spatial calibration.
       </p>
 
       <div class="blog-figure-pair">
@@ -127,32 +119,38 @@ Latent                               Position (x, y, yaw)
 
       <h3>Latent encoder</h3>
       <p>
-        The input is a VAE latent from the world model. A conv stem with strided convolutions downsamples it into a grid of tokens. Learnable register tokens are prepended before the transformer &mdash; these act as global summary tokens that attend to all spatial tokens but aren't included in the final pooling, serving as an information bottleneck.
+        Takes the image latent from the world model's VAE. A strided convolution patchifies it into a token grid. Register tokens are added in the transformer as dedicated slots for global information (like DINOv2 [4] did). A few transformer layers then process the tokens with:
       </p>
-      <p>The transformer uses:</p>
       <ul>
-        <li><strong>2D Rotary Position Embeddings</strong>: Head dim split in half &mdash; first half encodes row, second half encodes column. Handles the non-square spatial grid natively without learned position embeddings.</li>
-        <li><strong>QK-norm</strong>: RMSNorm on Q and K before the dot product. Prevents attention entropy collapse, which matters when the temperature is also learned.</li>
-        <li><strong>SwiGLU FFN</strong>: Gated feed-forward that selectively suppresses position-irrelevant features.</li>
-        <li><strong>Stochastic depth</strong>: Randomly drops entire residual branches per-sample during training.</li>
+        <li><strong>2D RoPE</strong>: encodes row and column position for the non-square spatial grid</li>
+        <li><strong>QK-norm</strong>: stabilises attention when the temperature is also learned</li>
+        <li><strong>SwiGLU</strong>: gated feed-forward, lets the model suppress position-irrelevant features</li>
+        <li><strong>Stochastic depth</strong>: drops entire residual branches per sample in training</li>
       </ul>
       <p>
-        After the transformer, global average pooling over spatial tokens only (registers excluded), then projection and L2 normalization.
+        Global average pool over spatial tokens (registers excluded), project, L2 normalise to ensure only the direction is compared.
       </p>
 
       <h3>Position encoder</h3>
       <p>
-        Takes <code>(x, y, yaw)</code> and encodes it with sinusoidal positional encoding at log-spaced frequencies &mdash; low frequencies capture coarse structure (which room), high frequencies capture fine structure (exact viewpoint). A small MLP maps this to the same embedding space as the latent encoder. Deliberately compact &mdash; position is a 3-DoF signal, over-parameterizing it would let the model memorize positions by index rather than learning smooth spatial relationships.
+        Takes <code>(x, y, yaw)</code> and encodes it with sinusoidal positional encoding at log-spaced frequencies:
+      </p>
+      <ul>
+        <li>Low frequencies capture coarse structure (which rooms)</li>
+        <li>High frequencies capture fine structure (specific POVs)</li>
+      </ul>
+      <p>
+        Then uses MLP to map this to the same embedding space as the latent encoder. Position is only 3 DoF, so over-parameterising will lead to memorising rather than generalising smooth spatial relationships.
       </p>
 
       <h3>Learned temperature</h3>
       <p>
-        The logit matrix is <code>latent_emb @ position_emb.T * &tau;</code> where &tau; is a single learned scalar. Initialized at the CLIP default (~14), it grew to ~35 during training &mdash; as the embeddings became more discriminative, a sharper softmax distribution improved the contrastive loss.
+        The logit matrix is <code>latent_emb @ position_emb.T * &tau;</code> where &tau; is a single learned scalar. Initialised at the CLIP default (~14), it grew to ~35 during training. Higher temp shows the embeddings became more discriminative, thus a sharper softmax distribution improved the contrastive loss.
       </p>
 
       <h3>Loss</h3>
       <p>
-        Symmetric InfoNCE &mdash; the same contrastive loss as CLIP. Each latent should match its own position and vice versa. Embeddings are gathered across all GPUs before computing the similarity matrix, so every sample in the batch is a negative for every other sample. More negatives means sharper gradients and better representations.
+        Symmetric InfoNCE (CLIP [2]'s contrastive loss). Each latent should match its own position and vice versa. Embeddings are gathered across all GPUs before computing the similarity matrix, so every sample in the batch is a negative for every other sample. More negatives means sharper gradients and better representations.
       </p>
     </div>
 
@@ -167,13 +165,13 @@ Latent                               Position (x, y, yaw)
         <source src="resources/noisesweep.mp4" type="video/mp4">
       </video>
       <p>
-        The model learns the semantic content of a frame &mdash; which room, which wall, which direction &mdash; not the rendering quality. The contrastive objective forces the encoder to extract position-relevant structure and discard everything else. The model doesn't care that the image looks bad. It cares that the image looks like <em>the wrong place</em>.
+        The model learns the semantic content of a frame, so the room, the wall, and direction instead of the rendering quality! The contrastive objective forces the encoder to extract position-relevant structure and discard everything else. Even with visibly strong distortions, the score is still in-distribution.
       </p>
       <p>
-        The noise sweep video shows this: the score barely moves through moderate noise because the scene structure is intact, and only rises when noise is severe enough to obliterate it entirely.
+        The noise sweep shows score barely moves through moderate noise because the scene structure is intact, and only rises when noise is extreme and blurs the image entirely.
       </p>
       <p>
-        Training reinforces this with four augmentations: multi-scale spatially-correlated noise (matching AR model artifacts, not i.i.d. Gaussian), frequency-domain attenuation (simulating the high-freq detail loss AR models produce), 50% FLIP-style patch masking (dropping half the spatial tokens before the transformer &mdash; 2&times; training speedup with minimal accuracy loss), and position jitter (soft positive pairs from small position perturbations).
+        Training reinforces this with four augmentations: multi-scale spatially-correlated noise (matching AR model artifacts, not Gaussian), frequency domain attenuation (simulating the high-freq detail loss AR models produce), <strong>50% FLIP [3]-style patch masking</strong> (randomly dropping half the spatial tokens before the transformer), and position jitter (adding small position perturbations).
       </p>
     </div>
 
@@ -187,34 +185,51 @@ Latent                               Position (x, y, yaw)
 
       <h3>Image drift vs position drift</h3>
       <p>
-        In practice, image drift is the dominant failure mode. The observation model (which generates frames) drifts first &mdash; the visual output degrades while the player's position is still roughly correct. Position drift, when it happens, is a downstream consequence: the dynamics module predicts the next position from the current state, and once the observation model has corrupted that state, the position predictions follow. This means the contrastive detector primarily fires on image drift, which is the earlier and more common signal.
+        In practice, image drift is the dominant failure mode. The observation model in MultiGen [1] (which generates frames) drifts first, the visual output degrades while the player's position is still roughly correct. Position drift, when it happens, is a downstream consequence: the dynamics module predicts the next position from the current state, and once the observation model has corrupted that state, the position predictions follow. This means the contrastive detector primarily fires on image drift, which is the earlier and more common signal.
       </p>
 
-      <h3>Calibration</h3>
+      <h3>Spatially-adaptive calibration</h3>
       <p>
-        Raw cosine similarity varies by map region. Open areas with diverse visual content produce higher baseline similarity than corridors or wall-facing positions (which have less visual diversity to disambiguate). Without correction, wall-facing frames would always score as OOD regardless of whether they're actually drifted.
+        Raw cosine similarity varies by map region (model is not generalised enough!). Open areas with diverse visual content produce higher baseline similarity than corridors or wall-facing positions (which have less visual diversity to disambiguate). Without correction, wall-facing frames would always score as OOD regardless of whether they're actually drifted.
       </p>
       <p>
-        The calibration step runs the full training set through the model, bins positions into a spatial grid, and computes per-bin statistics. At inference, the OOD score is z-normalized against the local region's baseline. This makes the threshold spatially uniform &mdash; a "low" cosine similarity in a complex open area is evaluated relative to what's normal for that region, not relative to the global average.
+        Spatially-adaptive calibration fixes this. The full training set is scored, positions are binned into a spatial grid, and per-bin statistics are computed. At inference, the OOD score is z-normalised against the local region's baseline, a "low" cosine similarity in a complex open area is evaluated relative to what's normal for that region, not relative to the global average.
       </p>
 
       <h3>Wall-facing frames</h3>
+      <figure class="blog-figure">
+        <img src="resources/wall.png" alt="Wall-facing frame analysis">
+      </figure>
       <p>
-        The hardest test case. Wall-facing frames have low visual diversity &mdash; many different walls across the map look similar (same texture, flat geometry, uniform lighting). The model must distinguish "this specific wall at this specific position" from "a different wall somewhere else," which is inherently harder than distinguishing two open rooms with different layouts.
+        The hardest test case. Wall-facing frames have low visual diversity. Many different walls across the map look similar (same texture, flat geometry, uniform lighting). The model must distinguish "this specific wall at this specific position" from "a wall in another room," which is inherently harder than distinguishing two open rooms with different layouts.
       </p>
       <p>
-        Wall detection uses ray casting against the WAD geometry &mdash; a frame is "wall-facing" if a ray from the player position in their yaw direction hits a one-sided wall within a short distance.
-      </p>
-      <p>
-        The evaluation runs separate AUROC and FPR@95 metrics for wall-facing vs non-wall subsets. Wall-facing frames have higher false positive rates at matched thresholds &mdash; this is expected and is the primary failure mode to monitor.
+        The evaluation runs separate AUROC and FPR@95 metrics for wall-facing vs non-wall subsets. Wall-facing frames have higher false positive rates at matched thresholds and this is expected.
       </p>
 
       <h3>Perturbation sensitivity</h3>
+      <figure class="blog-figure">
+        <img src="resources/perturb.png" alt="Perturbation sensitivity analysis">
+      </figure>
       <p>
-        The perturbation sweep systematically increases position displacement along individual axes (x, y, yaw) and combined, measuring how the OOD score responds. The score rises smoothly and monotonically with displacement &mdash; no blind spots or non-monotonicities. The detector reaches near-perfect separation for moderate displacements.
+        This perturbation sweep increases position displacement along x and yaw respectively, measuring how the OOD score responds. The score rises smoothly and monotonically with displacement. And the detector reaches near-perfect separation for moderate displacements.
       </p>
       <p>
-        For very small perturbations, detection is partial. This is by design &mdash; the position jitter augmentation deliberately makes the model tolerant to sub-unit variations, so very small mismatches are in the noise floor.
+        For very small perturbations (&lt;10 units), detection is partial. The position jitter augmentation deliberately makes the model tolerant to sub-unit variations, so very small mismatches are in the noise floor.
+      </p>
+
+      <h3>FPR, TPR, and AUROC</h3>
+      <figure class="blog-figure">
+        <img src="resources/FPR.png" alt="FPR, TPR, and AUROC analysis">
+      </figure>
+      <p>
+        AUROC and FPR@95%TPR are evaluated separately for wall-facing and non-wall frames. Wall-facing frames are harder to classify (lower AUROC, higher FPR) because walls carry less visual information per position.
+      </p>
+      <p>
+        Which metric matters more depends on the application. For interactive generation (games, simulation), <strong>FPR dominates user experience</strong> as false alarms trigger unnecessary resetting from ground truth, causing gameplay interference. A low FPR keeps generation smooth.
+      </p>
+      <p>
+        For safety-critical applications (robotics, autonomous driving), <strong>TPR is more critical</strong> as a missed drift event means the system is acting on a hallucinated world state. In that setting, higher FPR is acceptable if it means catching every real drift. But after all its a balance because you don't want the alarm to be on 24/7.
       </p>
     </div>
 
@@ -226,19 +241,22 @@ Latent                               Position (x, y, yaw)
     <div class="blog-section">
       <h2>Limitations and Future</h2>
       <p>
-        <strong>Single-frame scoring.</strong> The model sees one frame at a time. It detects current-frame mismatch but can't detect gradual drift before it becomes severe. A temporal version &mdash; scoring a short window of recent frames &mdash; could catch drift earlier by detecting trends in the score trajectory. The tradeoff is complexity: recurrent state, sequence modeling, and the question of how long a window is useful before the drift is already obvious from a single frame.
+        <strong>Map-specific model.</strong> The position encoder uses absolute coordinates so the model is trained for a specific map and doesn't transfer to new environments. Conditioning on relative position signals instead (e.g., depth maps, local geometry) would decouple the detector from any particular map layout and allow generalisation across environments without retraining.
       </p>
       <p>
-        <strong>Simple position encoder.</strong> An MLP on sinusoidal features may not capture complex map topology. Two positions that are close in Euclidean distance but separated by a wall (and therefore have completely different visual content) get similar position embeddings. A graph-based or topology-aware position encoder could help, but the current approach works well enough for the maps tested.
+        <strong>Simple position encoder.</strong> An MLP on sinusoidal features may not capture complex map topology. Two positions that are close in Euclidean distance but separated by a thin wall (and therefore have completely different visual content) get similar position embeddings. But the current approach works well enough for the map tested.
+      </p>
+      <p>
+        <strong>Wall-facing difficulty.</strong> Despite calibration, wall-facing frames remain the primary source of false positives. The fundamental issue is that walls have less visual information per position than open areas so there's less signal for the model to match against. Depth-based features as additional input, or even abandoning absolute coordinates as input just like the above point.
       </p>
       <p>
         <strong>Coarse calibration grid.</strong> The spatial binning is coarse. Fine-grained map features (doorways, texture boundaries) span sub-bin regions. Bins with few training samples fall back to global stats, which can be poorly calibrated. A finer grid or a learned calibration network would improve spatial uniformity, at the cost of needing more calibration data.
       </p>
       <p>
-        <strong>Data coverage.</strong> Training used a stride over a subset of available frames. Rare positions or unusual viewpoints may be under-represented. Scaling to the full dataset is straightforward and would likely improve coverage in under-sampled map regions.
+        <strong>Single-frame scoring.</strong> The model sees one frame at a time. A temporal version scoring a short window of recent frames could catch drift earlier by detecting trends in the score trajectory.
       </p>
       <p>
-        <strong>Wall-facing difficulty.</strong> Despite per-region calibration, wall-facing frames remain the primary source of false positives. The fundamental issue is that walls have less visual information per position than open areas &mdash; there's less signal for the model to match against. Possible mitigations: wall-aware calibration (separate stats for wall/non-wall bins), depth-based features as additional input, or a wall-specific scoring head.
+        <strong>Anchor point memory.</strong> It is not possible to cheat memory after all. Periodically saving generated frames as anchor points and scoring future frames against them, combined with relative position inputs rather than absolute coordinates, could produce a detector that generalises across maps without retraining per environment.
       </p>
     </div>
 
@@ -247,12 +265,8 @@ Latent                               Position (x, y, yaw)
     <div class="blog-section" style="font-size: 13px; line-height: 1.7;">
       [1] Po et al., <a href="https://ryanpo.com/multigen/" target="_blank" rel="noopener noreferrer">MultiGen: Multi-Player Generative World Model</a>, 2025<br>
       [2] Radford et al., <a href="https://arxiv.org/abs/2103.00020" target="_blank" rel="noopener noreferrer">Learning Transferable Visual Models From Natural Language Supervision (CLIP)</a>, 2021<br>
-      [3] Valevski et al., <a href="https://arxiv.org/abs/2408.14837" target="_blank" rel="noopener noreferrer">GameNGen: Diffusion Models Are Real-Time Game Engines</a>, 2024<br>
-      [4] Decart, <a href="https://oasis-model.github.io/" target="_blank" rel="noopener noreferrer">Oasis: A Universe in a Transformer</a>, 2024<br>
-      [5] Hu et al., <a href="https://arxiv.org/abs/2309.17080" target="_blank" rel="noopener noreferrer">GAIA-1: A Generative World Model for Autonomous Driving</a>, 2023<br>
-      [6] Gao et al., <a href="https://arxiv.org/abs/2405.05461" target="_blank" rel="noopener noreferrer">Vista: A Generalizable Driving World Model</a>, 2024<br>
-      [7] Yang et al., <a href="https://arxiv.org/abs/2308.13139" target="_blank" rel="noopener noreferrer">UniSim: Learning Interactive Real-World Simulators</a>, 2023<br>
-      [8] Bruce et al., <a href="https://arxiv.org/abs/2402.15391" target="_blank" rel="noopener noreferrer">Genie: Generative Interactive Environments</a>, 2024
+      [3] Li et al., <a href="https://arxiv.org/abs/2212.00794" target="_blank" rel="noopener noreferrer">Scaling Language-Image Pre-training via Masking (FLIP)</a>, CVPR 2023<br>
+      [4] Oquab et al., <a href="https://arxiv.org/abs/2304.07193" target="_blank" rel="noopener noreferrer">DINOv2: Learning Robust Visual Features without Supervision</a>, 2023
     </div>
 
     <hr>
