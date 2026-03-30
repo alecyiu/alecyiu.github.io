@@ -11,7 +11,7 @@
   <div id="container">
 
     <div class="blog-nav">
-      <a href="../../index.html">Home</a>
+      <a href="../../index.html">&larr; Home</a>
     </div>
 
     <h1 class="blog-title">World Model Drift Detection in Multiplayer Environments:<br>A CLIP-Based Approach</h1>
@@ -22,8 +22,6 @@
       <a href="https://play-multigen.com/" target="_blank" rel="noopener noreferrer" class="blog-btn blog-btn-primary blog-btn-lg">Play the Game</a>
       <a href="https://ryanpo.com/multigen/" target="_blank" rel="noopener noreferrer" class="blog-btn">Original Paper</a>
     </div>
-
-    <hr>
 
     <video class="blog-video blog-video-hero" autoplay loop muted playsinline>
       <source src="resources/driftvid.mp4" type="video/mp4">
@@ -36,7 +34,10 @@
     <div class="blog-section">
       <h2>Intro</h2>
       <p>
-        World models drift, from game simulation (GameNGen, Oasis), autonomous driving (GAIA-1, Vista), robotics (UniSim, Genie, DVA), they generate long enough and prediction errors compound until the output no longer matches reality. The usual response is to extend the context window or compress memory more efficiently. This post takes a different approach: instead of preventing drift, <strong>detect it</strong>. And what you do after is another question. Steer the next frame? Reset? Integrate it inside the loss function...
+        World models drift, from game simulation (GameNGen, Oasis), autonomous driving (GAIA-1, Vista), robotics (UniSim, Genie, DVA), they generate long enough and prediction errors compound until the output no longer matches reality. The usual response is to extend the context window or compress memory more efficiently. 
+      </p>
+      <p>
+        Let's takes a different approach: instead of preventing drift, <strong>detect it</strong>. And what you do after is another question. Steer the next frame? Reset? Integrate it inside the loss function...
       </p>
       <p>
         The testbed is a multiplayer Doom world model (<strong>MultiGen</strong> [1]) with shared state memory for multiple players &amp; one consistent world. Drift here is especially destructive because one player's divergence corrupts the shared state for everyone.
