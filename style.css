@@ -264,6 +264,14 @@ img.profile {
   font-weight: 700;
 }
 
+.blog-affiliations {
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
 .blog-section {
   margin-bottom: 10px;
 }
