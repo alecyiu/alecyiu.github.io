@@ -256,15 +256,31 @@ img.profile {
 }
 
 .blog-figure-title {
-  font-size: 20px;
+  font-size: 39px;
   font-weight: 700;
   font-style: normal;
   color: #333;
   margin-bottom: 12px;
 }
 
-.blog-figure-sm img {
-  max-width: 60%;
+.blog-figure-pair {
+  display: flex;
+  gap: 24px;
+  width: 80vw;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 24px 0;
+  align-items: flex-start;
+}
+
+.blog-figure-pair .blog-figure {
+  flex: 1;
+  margin: 0;
+}
+
+.blog-figure-pair .blog-figure img {
+  max-width: 100%;
 }
 
 .blog-btn {
@@ -434,5 +450,12 @@ img.profile {
   }
   .blog-gallery {
     flex-direction: column;
+  }
+  .blog-figure-pair {
+    flex-direction: column;
+    width: 95vw;
+  }
+  .blog-figure-title {
+    font-size: 24px;
   }
 }

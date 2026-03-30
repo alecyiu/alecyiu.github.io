@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CLIP for World Models: Contrastive Drift Detection in Multiplayer Environments | Alec Yiu</title>
+  <title>CLIP for World Model Drift Detection with Shared States | Alec Yiu</title>
   <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
   <link rel="stylesheet" href="../../style.css">
 </head>
@@ -14,7 +14,7 @@
       <a href="../../index.html">&larr; Back to Home</a>
     </div>
 
-    <h1 class="blog-title">CLIP for World Models: Contrastive Drift Detection in Multiplayer Environments</h1>
+    <h1 class="blog-title">CLIP for World Model Drift Detection with Shared States</h1>
     <p class="blog-author"><a href="../../index.html">Alec Yiu</a>, <a href="https://ryanpo.com/" target="_blank" rel="noopener noreferrer">Ryan Po</a><sup>1</sup></p>
     <p class="blog-affiliations"><sup>1</sup>Stanford University</p>
 
@@ -88,10 +88,16 @@
         CLIP-style dual encoder. Two independent encoders project into the same embedding space &mdash; one from the VAE latent, one from the map position &mdash; and cosine similarity between them is the matching score.
       </p>
 
-      <figure class="blog-figure blog-figure-sm">
-        <figcaption class="blog-figure-title">Contrastive pre-training for frame-position matching</figcaption>
-        <img src="resources/contrastivemodel.png" alt="Contrastive pre-training for frame-position matching">
-      </figure>
+      <div class="blog-figure-pair">
+        <figure class="blog-figure">
+          <figcaption class="blog-figure-title">1. Contrastive pre-training for frame-position matching</figcaption>
+          <img src="resources/contrastivemodel.png" alt="Contrastive pre-training for frame-position matching">
+        </figure>
+        <figure class="blog-figure">
+          <figcaption class="blog-figure-title">2. Real-time drift scoring during world model generation</figcaption>
+          <img src="resources/modelinference.png" alt="Real-time drift scoring during world model generation">
+        </figure>
+      </div>
 
 <pre class="blog-code-block">
 Latent                               Position (x, y, yaw)
