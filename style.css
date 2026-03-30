@@ -261,7 +261,7 @@ img.profile {
 }
 
 .blog-figure-title {
-  font-size: 28px;
+  font-size: 36px;
   font-weight: 700;
   font-style: normal;
   color: #333;
@@ -304,8 +304,16 @@ img.profile {
   color: #fff;
 }
 
+.blog-video-v1 {
+  width: 72vw;
+}
+
+.blog-video-v2 {
+  width: 68vw;
+}
+
 .blog-video-hero {
-  width: 90%;
+  width: 85%;
   left: auto;
   transform: none;
   margin: 24px auto 8px;
