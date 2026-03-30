@@ -96,27 +96,6 @@
         </figure>
       </div>
 
-<pre class="blog-code-block">
-Latent                               Position (x, y, yaw)
-  |                                         |
-  Conv stem                           Normalize + sinusoidal PE
-  (strided convolutions)              yaw &rarr; (sin, cos)
-  &rarr; spatial token grid                      |
-  |                                    Small MLP
-  + register tokens                         |
-  |                                    L2 normalize
-  Transformer blocks                   &rarr; embedding
-  (2D RoPE, QK-norm,
-   SwiGLU, stochastic depth)
-  |
-  Global avg pool &rarr; projection
-  &rarr; L2 normalize &rarr; embedding
-  |                                         |
-  +---------- cosine sim / &tau; ---------------+
-                    &darr;
-             (B, B) logit matrix
-</pre>
-
       <h3>Latent encoder</h3>
       <p>
         Takes the image latent from the world model's VAE. A strided convolution patchifies it into a token grid. Register tokens are added in the transformer as dedicated slots for global information (like DINOv2 [4] did). A few transformer layers then process the tokens with:
