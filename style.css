@@ -262,7 +262,7 @@ img.profile {
 }
 
 .blog-figure-title {
-  font-size: 36px;
+  font-size: 44px;
   font-weight: 700;
   font-style: normal;
   color: #333;
@@ -364,6 +364,10 @@ img.profile {
 
 .blog-section {
   margin-bottom: 10px;
+}
+
+.blog-section > h2 {
+  text-align: center;
 }
 
 .blog-section p {
