@@ -113,7 +113,10 @@ img.profile {
 
 .entry-media img,
 .entry-media video {
+  display: block;
   width: 100%;
+  max-width: 250px;
+  height: auto;
   border-radius: 8px;
 }
 
