@@ -122,14 +122,9 @@
         Then uses MLP to map this to the same embedding space as the latent encoder. Position is only 3 DoF, so over-parameterising will lead to memorising rather than generalising smooth spatial relationships.
       </p>
 
-      <h3>Learned temperature</h3>
-      <p>
-        The logit matrix is <code>latent_emb @ position_emb.T * &tau;</code> where &tau; is a single learned scalar. Initialised at the CLIP default (~14), it grew to ~35 during training. Higher temp shows the embeddings became more discriminative, thus a sharper softmax distribution improved the contrastive loss.
-      </p>
-
       <h3>Loss</h3>
       <p>
-        Symmetric InfoNCE (CLIP [2]'s contrastive loss). Each latent should match its own position and vice versa. Embeddings are gathered across all GPUs before computing the similarity matrix, so every sample in the batch is a negative for every other sample. More negatives means sharper gradients and better representations.
+        Symmetric InfoNCE (CLIP [2]'s contrastive loss). Each latent should match its own position and vice versa. The similarity matrix is <code>latent_emb @ position_emb.T * &tau;</code> where &tau; is a learned temperature scalar that controls how sharp the softmax is. It initialised at ~14 and grew to ~35 during training as the embeddings became more discriminative. Embeddings are gathered across all GPUs so every sample in the batch is a negative for every other sample. More negatives means sharper gradients and a harder problem to solve, which makes better generalisation.
       </p>
     </div>
 
