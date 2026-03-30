@@ -335,8 +335,8 @@ img.profile {
 }
 
 @keyframes glow {
-  0%, 100% { box-shadow: 0 0 4px rgba(23, 114, 208, 0.3); }
-  50% { box-shadow: 0 0 18px rgba(23, 114, 208, 0.6); }
+  0%, 100% { box-shadow: 0 0 8px rgba(23, 114, 208, 0.4); }
+  50% { box-shadow: 0 0 30px rgba(23, 114, 208, 0.8); }
 }
 
 .blog-btn-primary:hover {
