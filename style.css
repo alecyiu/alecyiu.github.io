@@ -331,6 +331,12 @@ img.profile {
 .blog-btn-primary {
   background: #1772d0;
   color: #fff;
+  animation: glow 2.5s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(23, 114, 208, 0.3); }
+  50% { box-shadow: 0 0 18px rgba(23, 114, 208, 0.6); }
 }
 
 .blog-btn-primary:hover {
